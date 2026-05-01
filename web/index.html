@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Byte Me! — College Canteen</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#ff6b35;--brand-d:#e55a25;--brand-l:#fff3ee;
+  --accent:#2ec4b6;--bg:#f4f5f7;--surface:#fff;
+  --border:#e5e7eb;--text:#111827;--muted:#6b7280;
+  --success:#22c55e;--danger:#ef4444;--warning:#f59e0b;
+  --vip:#a855f7;--vip-l:#f5f3ff;
+  --r:12px;--sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);
+  --sh-lg:0 8px 32px rgba(0,0,0,.13);
+}
+html{font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
+button{cursor:pointer;font:inherit;border:none;background:none}
+input,select,textarea{font:inherit}
+
+/* ── App Shell ── */
+.app{display:flex;flex-direction:column;min-height:100vh}
+header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 1.5rem;display:flex;align-items:center;gap:1rem;
+  height:62px;position:sticky;top:0;z-index:100;
+  box-shadow:0 1px 4px rgba(0,0,0,.06)
+}
+.logo{font-size:1.5rem;font-weight:900;color:var(--brand);letter-spacing:-.5px;white-space:nowrap}
+.logo span{color:var(--text)}
+nav{display:flex;gap:.2rem;flex:1}
+.nav-btn{
+  padding:.45rem .9rem;border-radius:8px;font-weight:600;font-size:.875rem;
+  color:var(--muted);transition:all .15s
+}
+.nav-btn:hover,.nav-btn.active{background:var(--brand-l);color:var(--brand)}
+.hdr-right{display:flex;align-items:center;gap:.75rem}
+.cust-badge{
+  font-size:.78rem;font-weight:700;padding:.3rem .75rem;border-radius:999px;
+  background:var(--brand-l);color:var(--brand);display:none;align-items:center;gap:.3rem
+}
+.cust-badge.vip{background:var(--vip-l);color:var(--vip)}
+.cust-badge.show{display:inline-flex}
+
+main{flex:1;padding:1.5rem;max-width:1120px;margin:0 auto;width:100%}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;box-shadow:var(--sh)}
+.card-title{font-size:1.05rem;font-weight:800;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+
+/* ── Grids ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:720px){.g2,.g3{grid-template-columns:1fr}}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:.2rem;border-bottom:2px solid var(--border);margin-bottom:1.25rem}
+.tab{
+  padding:.55rem 1rem;font-weight:700;font-size:.85rem;border-radius:8px 8px 0 0;
+  color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s
+}
+.tab.active{color:var(--brand);border-bottom-color:var(--brand);background:var(--brand-l)}
+
+/* ── Food Grid ── */
+.food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:1rem}
+.food-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:1rem;transition:box-shadow .2s,transform .15s
+}
+.food-card:hover{box-shadow:var(--sh-lg);transform:translateY(-2px)}
+.food-card.out{opacity:.5}
+.f-cat{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.3rem}
+.f-name{font-weight:800;font-size:.95rem;margin-bottom:.2rem}
+.f-price{font-size:1.15rem;font-weight:900;color:var(--brand);margin-bottom:.5rem}
+.badge{display:inline-block;padding:.15rem .55rem;border-radius:999px;font-size:.7rem;font-weight:700;margin-bottom:.75rem}
+.badge-ok{background:#dcfce7;color:#166534}
+.badge-no{background:#fee2e2;color:#dc2626}
+.badge-vip{background:var(--vip-l);color:var(--vip)}
+.badge-prep{background:#fef9c3;color:#854d0e}
+.badge-del{background:#dcfce7;color:#166534}
+
+.add-btn{
+  width:100%;padding:.55rem;border-radius:8px;background:var(--brand);
+  color:#fff;font-weight:700;font-size:.875rem;transition:background .15s
+}
+.add-btn:hover{background:var(--brand-d)}
+.add-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+
+/* ── Forms ── */
+.fg{margin-bottom:.9rem}
+label{display:block;font-size:.8rem;font-weight:700;margin-bottom:.35rem;color:var(--muted)}
+input[type=text],input[type=number],input[type=email],select,textarea{
+  width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);
+  border-radius:8px;transition:border-color .15s;background:var(--surface)
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.25rem;border-radius:8px;font-weight:700;font-size:.875rem;transition:all .15s}
+.btn-primary{background:var(--brand);color:#fff}.btn-primary:hover{background:var(--brand-d)}
+.btn-outline{border:1.5px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--brand);color:var(--brand)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-vip{background:var(--vip);color:#fff}
+.btn-sm{padding:.35rem .75rem;font-size:.8rem}
+.btn-block{width:100%;justify-content:center}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.875rem}
+th{background:var(--bg);padding:.75rem 1rem;text-align:left;font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:.7rem 1rem;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+
+/* ── Cart ── */
+.cart-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--border)}
+.cart-item:last-child{border-bottom:none}
+.ci-name{flex:1;font-weight:700}
+.ci-meta{font-size:.78rem;color:var(--muted)}
+.cart-total{margin-top:1rem;padding-top:1rem;border-top:2px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.ct-label{font-weight:700}
+.ct-amount{font-weight:900;font-size:1.4rem;color:var(--brand)}
+
+/* ── Stats ── */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;text-align:center}
+.stat-val{font-size:2.2rem;font-weight:900;color:var(--brand)}
+.stat-lbl{font-size:.8rem;color:var(--muted);font-weight:700;margin-top:.25rem}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;
+  background:var(--text);color:#fff;padding:.75rem 1.25rem;
+  border-radius:10px;font-size:.875rem;font-weight:600;
+  box-shadow:var(--sh-lg);opacity:0;transform:translateY(8px);
+  transition:all .25s;pointer-events:none;max-width:320px
+}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.ok{background:var(--success)}
+#toast.err{background:var(--danger)}
+
+/* ── Modals ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal{background:var(--surface);border-radius:var(--r);padding:2rem;width:min(430px,94vw);box-shadow:var(--sh-lg)}
+.modal h2{font-size:1.35rem;font-weight:900;margin-bottom:1.25rem}
+.modal-foot{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.25rem}
+
+/* ── Misc ── */
+.empty{text-align:center;padding:3rem;color:var(--muted)}
+.empty .ico{font-size:3rem;margin-bottom:.75rem}
+.row-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.mt1{margin-top:.5rem}.mt2{margin-top:1rem}
+.hidden{display:none!important}
+.spin{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader{display:flex;justify-content:center;padding:2rem}
+
+/* ── Pages ── */
+#pg-menu,#pg-cart,#pg-orders,#pg-admin{display:none}
+#pg-menu.active,#pg-cart.active,#pg-orders.active,#pg-admin.active{display:block}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── Header ── -->
+<header>
+  <div class="logo">Byte<span> Me!</span></div>
+  <nav>
+    <button class="nav-btn active" data-pg="menu">🍽️ Menu</button>
+    <button class="nav-btn" data-pg="cart">🛒 Cart</button>
+    <button class="nav-btn" data-pg="orders">📦 Orders</button>
+    <button class="nav-btn" data-pg="admin">⚙️ Admin</button>
+  </nav>
+  <div class="hdr-right">
+    <div class="cust-badge" id="cust-badge"></div>
+    <button class="btn btn-outline btn-sm" id="login-btn">Login</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ══ MENU PAGE ══ -->
+<div id="pg-menu" class="active">
+  <div class="card">
+    <div class="card-title">🍽️ Canteen Menu <span id="menu-count" style="font-weight:400;font-size:.85rem;color:var(--muted);margin-left:.5rem"></span></div>
+    <div class="row-actions">
+      <input type="text" id="srch" placeholder="Search items…" style="flex:1;min-width:150px;max-width:260px">
+      <select id="flt-cat" style="width:145px">
+        <option value="">All Categories</option>
+        <option value="Snacks">🍟 Snacks</option>
+        <option value="Drinks">🥤 Drinks</option>
+        <option value="Meals">🍱 Meals</option>
+      </select>
+      <select id="srt" style="width:155px">
+        <option value="">Sort by Price</option>
+        <option value="asc">Price ↑ Low→High</option>
+        <option value="desc">Price ↓ High→Low</option>
+      </select>
+    </div>
+    <div class="food-grid" id="food-grid"><div class="loader"><div class="spin" style="border-top-color:var(--brand)"></div></div></div>
+  </div>
+</div>
+
+<!-- ══ CART PAGE ══ -->
+<div id="pg-cart">
+  <div class="g2" style="align-items:start">
+    <div class="card">
+      <div class="card-title">🛒 Your Cart</div>
+      <div id="cart-list"></div>
+      <div class="cart-total hidden" id="cart-total">
+        <span class="ct-label">Total</span>
+        <span class="ct-amount" id="cart-amount">$0.00</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">💳 Checkout</div>
+      <div class="fg"><label>Delivery Address</label><input type="text" id="co-addr" placeholder="Block A, Room 101"></div>
+      <div class="fg">
+        <label>Payment Method</label>
+        <select id="co-pay">
+          <option value="Cash">Cash on Delivery</option>
+          <option value="UPI">UPI / Online</option>
+        </select>
+      </div>
+      <div class="fg hidden" id="upi-row"><label>UPI ID</label><input type="text" id="co-upi" placeholder="name@upi"></div>
+      <button class="btn btn-primary btn-block" id="co-btn">Place Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ORDERS PAGE ══ -->
+<div id="pg-orders">
+  <div class="card">
+    <div class="card-title">📦 My Orders</div>
+    <div class="tabs">
+      <button class="tab active" data-ot="pending">Pending</button>
+      <button class="tab" data-ot="history">History</button>
+    </div>
+    <div id="ot-pending"><div id="pending-list"></div></div>
+    <div id="ot-history" class="hidden"><div id="history-list"></div></div>
+  </div>
+</div>
+
+<!-- ══ ADMIN PAGE ══ -->
+<div id="pg-admin">
+  <!-- Admin lock screen (shown when not authenticated) -->
+  <div id="admin-lock" class="card" style="max-width:420px;margin:3rem auto;text-align:center">
+    <div style="font-size:3rem;margin-bottom:1rem">🔐</div>
+    <h2 style="font-size:1.3rem;font-weight:900;margin-bottom:.5rem">Admin Access</h2>
+    <p style="color:var(--muted);font-size:.875rem;margin-bottom:1.5rem">Enter your credentials to continue</p>
+    <div class="fg" style="text-align:left"><label>Username</label><input type="text" id="adm-user" placeholder="admin" autocomplete="off"></div>
+    <div class="fg" style="text-align:left"><label>Password</label><input type="password" id="adm-pass" placeholder="••••••••"></div>
+    <div id="adm-err" style="color:var(--danger);font-size:.82rem;margin-bottom:.75rem;display:none">Invalid credentials. Try again.</div>
+    <button class="btn btn-primary btn-block" id="adm-login-btn">Login as Admin</button>
+    <div style="margin-top:1.25rem;padding:.6rem .9rem;background:var(--bg);border:1px dashed var(--border);border-radius:8px;font-size:.78rem;color:var(--muted);text-align:left">
+      <span style="font-weight:700;color:var(--text)">Demo credentials</span><br>
+      👤 Username: <code style="background:var(--border);padding:1px 5px;border-radius:4px">admin</code><br>
+      🔑 Password: <code style="background:var(--border);padding:1px 5px;border-radius:4px">byteme123</code>
+    </div>
+  </div>
+
+  <!-- Admin panel (shown after authentication) -->
+  <div id="admin-panel" class="hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <span style="font-size:.85rem;color:var(--muted)">Logged in as <strong>Admin</strong></span>
+    <button class="btn btn-outline btn-sm" id="adm-logout-btn">Logout</button>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-at="am">Menu Mgmt</button>
+    <button class="tab" data-at="ao">Order Mgmt</button>
+    <button class="tab" data-at="ar">Report</button>
+    <button class="tab" data-at="ac">Customers</button>
+  </div>
+
+  <!-- Admin: Menu -->
+  <div id="at-am">
+    <div class="g2" style="align-items:start">
+      <div class="card">
+        <div class="card-title">➕ Add Item</div>
+        <div class="fg"><label>Name</label><input type="text" id="a-name" placeholder="e.g. Samosa"></div>
+        <div class="fg"><label>Price ($)</label><input type="number" id="a-price" placeholder="2.50" min="0" step="0.01"></div>
+        <div class="fg"><label>Category</label>
+          <select id="a-cat"><option value="Snacks">Snacks</option><option value="Drinks">Drinks</option><option value="Meals">Meals</option></select>
+        </div>
+        <div class="fg"><label>Available</label>
+          <select id="a-avail"><option value="true">Yes</option><option value="false">No</option></select>
+        </div>
+        <button class="btn btn-primary" id="a-add-btn">Add Item</button>
+      </div>
+      <div class="card">
+        <div class="card-title">✏️ Update / Remove</div>
+        <div class="fg"><label>Select Item</label><select id="a-sel"><option value="">-- choose --</option></select></div>
+        <div class="fg"><label>New Price ($)</label><input type="number" id="a-uprice" min="0" step="0.01"></div>
+        <div class="fg"><label>Available</label>
+          <select id="a-uavail"><option value="true">Yes</option><option value="false">No</option></select>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-primary" id="a-upd-btn">Update</button>
+          <button class="btn btn-danger btn-sm" id="a-del-btn">Remove</button>
+        </div>
+      </div>
+    </div>
+    <div class="card mt2">
+      <div class="card-title">📋 Current Menu</div>
+      <div class="tbl-wrap" id="admin-menu-tbl"></div>
+    </div>
+  </div>
+
+  <!-- Admin: Orders -->
+  <div id="at-ao" class="hidden">
+    <div class="row-actions">
+      <button class="btn btn-vip" id="proc-vip">✅ Process All VIP Orders</button>
+      <button class="btn btn-success" id="proc-reg">✅ Process All Regular Orders</button>
+    </div>
+    <div class="g2">
+      <div class="card"><div class="card-title" style="color:var(--vip)">👑 VIP Pending</div><div id="adm-vip"></div></div>
+      <div class="card"><div class="card-title">🔵 Regular Pending</div><div id="adm-reg"></div></div>
+    </div>
+  </div>
+
+  <!-- Admin: Report -->
+  <div id="at-ar" class="hidden">
+    <div class="g3">
+      <div class="stat-card"><div class="stat-val" id="rep-sales">$0</div><div class="stat-lbl">Daily Sales</div></div>
+      <div class="stat-card"><div class="stat-val" id="rep-orders">0</div><div class="stat-lbl">Total Orders</div></div>
+      <div class="stat-card"><div class="stat-val" id="rep-pop" style="font-size:1.1rem">—</div><div class="stat-lbl">Most Popular Item</div></div>
+    </div>
+    <div class="row-actions mt2">
+      <button class="btn btn-outline" id="new-day-btn">🔄 New Day (Reset Sales)</button>
+      <button class="btn btn-primary" id="rep-refresh">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- Admin: Customers -->
+  <div id="at-ac" class="hidden">
+    <div class="card"><div class="card-title">👥 Customers</div><div class="tbl-wrap" id="cust-tbl"></div></div>
+  </div>
+  </div><!-- /admin-panel -->
+</div>
+
+</main>
+</div>
+
+<!-- ── Login Modal ── -->
+<div class="overlay hidden" id="login-modal">
+  <div class="modal">
+    <h2>Welcome to Byte Me! 🍔</h2>
+    <div class="fg"><label>Your Name</label><input type="text" id="ln-name" placeholder="Enter your name" autocomplete="off"></div>
+    <div id="new-cust-fields" class="hidden">
+      <div class="fg"><label>Roll Number</label><input type="number" id="ln-roll" placeholder="e.g. 12345"></div>
+      <div class="fg"><label>Membership</label>
+        <select id="ln-vip">
+          <option value="false">Regular Customer</option>
+          <option value="true">👑 VIP — Priority Orders</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" id="login-cancel">Cancel</button>
+      <button class="btn btn-primary" id="login-ok">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add to Cart Modal ── -->
+<div class="overlay hidden" id="cart-modal">
+  <div class="modal">
+    <h2 id="cm-title">Add to Cart</h2>
+    <div class="fg"><label>Quantity</label><input type="number" id="cm-qty" value="1" min="1"></div>
+    <div class="fg"><label>Special Request <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input type="text" id="cm-special" placeholder="e.g. No onions, extra sauce"></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" id="cm-cancel">Cancel</button>
+      <button class="btn btn-primary" id="cm-ok">Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  Supabase config
+// ════════════════════════════════════════════════════════
+const SUPA_URL = 'https://rsagnynrdskhdyiowida.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWdueW5yZHNraGR5aW93aWRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MzkzMDUsImV4cCI6MjA5MzIxNTMwNX0.oKdiJw8EQ_NnQ6rIg5wM5ly3sLXs5vaMgeMeiEbsUhQ';
+const HDR = { 'Content-Type':'application/json', apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` };
+
+async function sb(path, opts={}) {
+  const r = await fetch(SUPA_URL + '/rest/v1/' + path, { headers: HDR, ...opts });
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.message || r.statusText); }
+  if (r.status === 204) return null;
+  return r.json();
+}
+const get  = (path) => sb(path, { headers: { ...HDR, Prefer:'return=representation' } });
+const post = (path, body) => sb(path, { method:'POST', body: JSON.stringify(body), headers:{ ...HDR, Prefer:'return=representation' } });
+const patch = (path, body) => sb(path, { method:'PATCH', body: JSON.stringify(body), headers:{ ...HDR, Prefer:'return=representation' } });
+const del  = (path) => sb(path, { method:'DELETE', headers: HDR });
+
+// ════════════════════════════════════════════════════════
+//  State
+// ════════════════════════════════════════════════════════
+let currentCustomer = JSON.parse(localStorage.getItem('bm_customer') || 'null');
+let allMenu = [];
+let cart    = JSON.parse(localStorage.getItem('bm_cart') || '[]'); // [{name,price,qty,special}]
+let pendingItem = null;
+
+function saveCart() { localStorage.setItem('bm_cart', JSON.stringify(cart)); }
+
+// ════════════════════════════════════════════════════════
+//  Toast
+// ════════════════════════════════════════════════════════
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show ' + type;
+  clearTimeout(el._t); el._t = setTimeout(()=>el.className='', 3000);
+}
+
+// ════════════════════════════════════════════════════════
+//  Admin Auth  (credentials checked client-side — fine for a college project)
+// ════════════════════════════════════════════════════════
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'byteme123';
+let adminAuthed = sessionStorage.getItem('bm_admin') === '1';
+
+function showAdminPage() {
+  document.getElementById('admin-lock').classList.toggle('hidden', adminAuthed);
+  document.getElementById('admin-panel').classList.toggle('hidden', !adminAuthed);
+  if (adminAuthed) { loadAdminMenu(); loadAdminOrders(); }
+}
+
+document.getElementById('adm-login-btn').addEventListener('click', () => {
+  const u = document.getElementById('adm-user').value.trim();
+  const p = document.getElementById('adm-pass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    adminAuthed = true;
+    sessionStorage.setItem('bm_admin', '1');
+    document.getElementById('adm-err').style.display = 'none';
+    showAdminPage();
+  } else {
+    document.getElementById('adm-err').style.display = 'block';
+    document.getElementById('adm-pass').value = '';
+    document.getElementById('adm-pass').focus();
+  }
+});
+
+// Allow pressing Enter in password field
+document.getElementById('adm-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('adm-login-btn').click();
+});
+
+document.getElementById('adm-logout-btn').addEventListener('click', () => {
+  adminAuthed = false;
+  sessionStorage.removeItem('bm_admin');
+  document.getElementById('adm-user').value = '';
+  document.getElementById('adm-pass').value = '';
+  showAdminPage();
+  toast('Logged out of admin','');
+});
+
+// ════════════════════════════════════════════════════════
+//  Navigation
+// ════════════════════════════════════════════════════════
+document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const pg = b.dataset.pg;
+  document.querySelectorAll('main > div[id^="pg-"]').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pg-'+pg).classList.add('active');
+  if (pg==='menu')   loadMenu();
+  if (pg==='cart')   renderCart();
+  if (pg==='orders') loadOrders();
+  if (pg==='admin')  showAdminPage();
+}));
+
+// ── Order tabs
+document.querySelectorAll('[data-ot]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-ot]').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const t = b.dataset.ot;
+  document.getElementById('ot-pending').classList.toggle('hidden', t!=='pending');
+  document.getElementById('ot-history').classList.toggle('hidden', t!=='history');
+  if (t==='history') loadHistory();
+}));
+
+// ── Admin tabs
+document.querySelectorAll('[data-at]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-at]').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const t = b.dataset.at;
+  ['am','ao','ar','ac'].forEach(id => document.getElementById('at-'+id).classList.toggle('hidden', 'at-'+id !== 'at-'+t));
+  if (t==='ao') loadAdminOrders();
+  if (t==='ar') loadReport();
+  if (t==='ac') loadCustomers();
+}));
+
+// ════════════════════════════════════════════════════════
+//  Customer badge
+// ════════════════════════════════════════════════════════
+function updateBadge() {
+  const el = document.getElementById('cust-badge');
+  if (currentCustomer) {
+    el.textContent = (currentCustomer.is_vip ? '👑 ' : '') + currentCustomer.name;
+    el.className = 'cust-badge show' + (currentCustomer.is_vip ? ' vip' : '');
+    document.getElementById('login-btn').textContent = 'Switch';
+  } else {
+    el.className = 'cust-badge';
+    document.getElementById('login-btn').textContent = 'Login';
+  }
+}
+updateBadge();
+
+// ════════════════════════════════════════════════════════
+//  Login Modal
+// ════════════════════════════════════════════════════════
+document.getElementById('login-btn').addEventListener('click', () => {
+  document.getElementById('login-modal').classList.remove('hidden');
+  document.getElementById('ln-name').focus();
+});
+document.getElementById('login-cancel').addEventListener('click', () => document.getElementById('login-modal').classList.add('hidden'));
+
+document.getElementById('ln-name').addEventListener('input', async () => {
+  const name = document.getElementById('ln-name').value.trim();
+  if (name.length < 2) { document.getElementById('new-cust-fields').classList.add('hidden'); return; }
+  try {
+    const rows = await get(`customers?name=ilike.${encodeURIComponent(name)}&limit=1`);
+    document.getElementById('new-cust-fields').classList.toggle('hidden', rows.length > 0);
+  } catch(e) {}
+});
+
+document.getElementById('login-ok').addEventListener('click', async () => {
+  const name = document.getElementById('ln-name').value.trim();
+  if (!name) { toast('Enter your name','err'); return; }
+  try {
+    let rows = await get(`customers?name=ilike.${encodeURIComponent(name)}&limit=1`);
+    if (rows.length === 0) {
+      const roll = parseInt(document.getElementById('ln-roll').value) || Math.floor(Math.random()*90000+10000);
+      const vip  = document.getElementById('ln-vip').value === 'true';
+      rows = await post('customers', { name, roll_number: roll, is_vip: vip });
+    }
+    currentCustomer = rows[0];
+    localStorage.setItem('bm_customer', JSON.stringify(currentCustomer));
+    updateBadge();
+    document.getElementById('login-modal').classList.add('hidden');
+    toast('Welcome, ' + currentCustomer.name + (currentCustomer.is_vip ? ' 👑' : '') + '!', 'ok');
+  } catch(e) { toast(e.message, 'err'); }
+});
+
+// ════════════════════════════════════════════════════════
+//  Menu
+// ════════════════════════════════════════════════════════
+async function loadMenu() {
+  try {
+    allMenu = await get('menu_items?order=category,name');
+    renderMenu();
+  } catch(e) { toast('Failed to load menu: ' + e.message, 'err'); }
+}
+
+function renderMenu() {
+  const srch = document.getElementById('srch').value.toLowerCase();
+  const cat  = document.getElementById('flt-cat').value;
+  const srt  = document.getElementById('srt').value;
+
+  let items = allMenu.filter(f =>
+    (!srch || f.name.toLowerCase().includes(srch)) &&
+    (!cat  || f.category === cat)
+  );
+  if (srt==='asc')  items.sort((a,b)=>a.price-b.price);
+  if (srt==='desc') items.sort((a,b)=>b.price-a.price);
+
+  document.getElementById('menu-count').textContent = items.length + ' items';
+  const g = document.getElementById('food-grid');
+  if (!items.length) { g.innerHTML='<div class="empty"><div class="ico">🍽️</div>No items found</div>'; return; }
+  g.innerHTML = items.map(f=>`
+    <div class="food-card ${f.available?'':'out'}">
+      <div class="f-cat">${esc(f.category)}</div>
+      <div class="f-name">${esc(f.name)}</div>
+      <div class="f-price">$${Number(f.price).toFixed(2)}</div>
+      <span class="badge ${f.available?'badge-ok':'badge-no'}">${f.available?'In Stock':'Out of Stock'}</span>
+      <button class="add-btn" onclick="openCartModal(${f.id},'${esc(f.name)}',${f.price})" ${!f.available?'disabled':''}>+ Add to Cart</button>
+    </div>`).join('');
+}
+
+['srch','flt-cat','srt'].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', renderMenu);
+  el.addEventListener('change', renderMenu);
+});
+
+// ── Cart modal
+window.openCartModal = function(id, name, price) {
+  if (!currentCustomer) { toast('Please login first','err'); return; }
+  pendingItem = { id, name, price };
+  document.getElementById('cm-title').textContent = `Add "${name}" to Cart`;
+  document.getElementById('cm-qty').value = '1';
+  document.getElementById('cm-special').value = '';
+  document.getElementById('cart-modal').classList.remove('hidden');
+  document.getElementById('cm-qty').focus();
+};
+document.getElementById('cm-cancel').addEventListener('click', ()=>document.getElementById('cart-modal').classList.add('hidden'));
+document.getElementById('cm-ok').addEventListener('click', ()=>{
+  const qty     = parseInt(document.getElementById('cm-qty').value)||1;
+  const special = document.getElementById('cm-special').value.trim()||null;
+  if (qty < 1) { toast('Quantity must be at least 1','err'); return; }
+  const idx = cart.findIndex(c=>c.name===pendingItem.name);
+  if (idx>=0) cart[idx] = { ...cart[idx], qty, special };
+  else cart.push({ name: pendingItem.name, price: pendingItem.price, qty, special });
+  saveCart();
+  document.getElementById('cart-modal').classList.add('hidden');
+  toast(pendingItem.name + ' added to cart ✓', 'ok');
+});
+
+// ════════════════════════════════════════════════════════
+//  Cart
+// ════════════════════════════════════════════════════════
+function renderCart() {
+  const el = document.getElementById('cart-list');
+  if (!currentCustomer) {
+    el.innerHTML='<div class="empty"><div class="ico">🔐</div>Please login to use the cart</div>';
+    document.getElementById('cart-total').classList.add('hidden'); return;
+  }
+  if (!cart.length) {
+    el.innerHTML='<div class="empty"><div class="ico">🛒</div>Your cart is empty</div>';
+    document.getElementById('cart-total').classList.add('hidden'); return;
+  }
+  el.innerHTML = cart.map((c,i)=>`
+    <div class="cart-item">
+      <div><div class="ci-name">${esc(c.name)}</div>
+      <div class="ci-meta">Qty: ${c.qty}${c.special?' · '+esc(c.special):''}</div></div>
+      <div style="font-weight:800;margin-left:auto;margin-right:.75rem">$${(c.price*c.qty).toFixed(2)}</div>
+      <button class="btn btn-danger btn-sm" onclick="removeCartItem(${i})">✕</button>
+    </div>`).join('');
+  const total = cart.reduce((s,c)=>s+c.price*c.qty,0);
+  document.getElementById('cart-total').classList.remove('hidden');
+  document.getElementById('cart-amount').textContent = '$'+total.toFixed(2);
+}
+
+window.removeCartItem = function(i) {
+  cart.splice(i,1); saveCart(); renderCart(); toast('Item removed','');
+};
+
+document.getElementById('co-pay').addEventListener('change', function(){
+  document.getElementById('upi-row').classList.toggle('hidden', this.value!=='UPI');
+});
+
+document.getElementById('co-btn').addEventListener('click', async ()=>{
+  if (!currentCustomer) { toast('Please login first','err'); return; }
+  if (!cart.length) { toast('Your cart is empty','err'); return; }
+  const addr    = document.getElementById('co-addr').value.trim() || 'Canteen';
+  const payment = document.getElementById('co-pay').value;
+  try {
+    // Create order record
+    const [order] = await post('orders', {
+      customer_name: currentCustomer.name,
+      is_vip: currentCustomer.is_vip,
+      status: 'Preparing',
+      delivery_address: addr,
+      payment_method: payment
+    });
+    // Create order items
+    const items = cart.map(c=>({ order_id: order.id, item_name: c.name, price: c.price, quantity: c.qty, special_request: c.special||null }));
+    await post('order_items', items);
+    cart = []; saveCart(); renderCart();
+    toast('Order placed! ' + (currentCustomer.is_vip?'👑 VIP priority queue':''), 'ok');
+  } catch(e) { toast(e.message,'err'); }
+});
+
+// ════════════════════════════════════════════════════════
+//  Orders
+// ════════════════════════════════════════════════════════
+async function loadOrders() {
+  if (!currentCustomer) {
+    document.getElementById('pending-list').innerHTML='<div class="empty"><div class="ico">🔐</div>Please login</div>'; return;
+  }
+  try {
+    const orders = await get(`orders?customer_name=ilike.${encodeURIComponent(currentCustomer.name)}&status=neq.Delivered&order=created_at.desc`);
+    const el = document.getElementById('pending-list');
+    if (!orders.length) { el.innerHTML='<div class="empty"><div class="ico">📦</div>No pending orders</div>'; return; }
+
+    // Load items for each order
+    const html = await Promise.all(orders.map(async o=>{
+      const items = await get(`order_items?order_id=eq.${o.id}`);
+      const sc = o.status==='Preparing'?'badge-prep':'badge-del';
+      return `<div style="border:1px solid var(--border);border-radius:8px;padding:.9rem;margin-bottom:.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+          <strong>Order #${o.id}</strong>
+          <span class="badge ${sc}">${esc(o.status)}</span>
+        </div>
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:.5rem">📍 ${esc(o.delivery_address)} · 💳 ${esc(o.payment_method)}</div>
+        <ul style="font-size:.875rem;padding-left:1rem">
+          ${items.map(i=>`<li>${esc(i.item_name)} ×${i.quantity}${i.special_request?' <em>('+esc(i.special_request)+')</em>':''} — $${(i.price*i.quantity).toFixed(2)}</li>`).join('')}
+        </ul>
+        <button class="btn btn-danger btn-sm mt1" onclick="cancelOrder(${o.id})">Cancel Order</button>
+      </div>`;
+    }));
+    el.innerHTML = html.join('');
+  } catch(e) { toast(e.message,'err'); }
+}
+
+window.cancelOrder = async function(orderId) {
+  if (!confirm('Cancel this order?')) return;
+  try {
+    await patch(`orders?id=eq.${orderId}`, { status: 'Cancelled' });
+    toast('Order cancelled','ok');
+    loadOrders();
+  } catch(e) { toast(e.message,'err'); }
+};
+
+async function loadHistory() {
+  if (!currentCustomer) return;
+  try {
+    const orders = await get(`orders?customer_name=ilike.${encodeURIComponent(currentCustomer.name)}&order=created_at.desc`);
+    const el = document.getElementById('history-list');
+    if (!orders.length) { el.innerHTML='<div class="empty"><div class="ico">📜</div>No order history yet</div>'; return; }
+    const html = await Promise.all(orders.map(async o=>{
+      const items = await get(`order_items?order_id=eq.${o.id}`);
+      const total = items.reduce((s,i)=>s+i.price*i.quantity,0);
+      const sc = {'Preparing':'badge-prep','Out for Delivery':'badge-del','Cancelled':'badge-no','Delivered':'badge-ok'}[o.status]||'badge-prep';
+      return `<div style="border:1px solid var(--border);border-radius:8px;padding:.9rem;margin-bottom:.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+          <strong>Order #${o.id}</strong>
+          <span class="badge ${sc}">${esc(o.status)}</span>
+        </div>
+        <div style="font-size:.82rem;color:var(--muted)">
+          ${new Date(o.created_at).toLocaleString()} · Total: <strong>$${total.toFixed(2)}</strong>
+        </div>
+      </div>`;
+    }));
+    el.innerHTML = html.join('');
+  } catch(e) { toast(e.message,'err'); }
+}
+
+// ════════════════════════════════════════════════════════
+//  Admin
+// ════════════════════════════════════════════════════════
+async function loadAdminMenu() {
+  try {
+    const items = await get('menu_items?order=category,name');
+    const sel = document.getElementById('a-sel');
+    sel.innerHTML = '<option value="">-- choose --</option>' +
+      items.map(f=>`<option value="${f.id}" data-price="${f.price}" data-avail="${f.available}">${esc(f.name)}</option>`).join('');
+
+    document.getElementById('admin-menu-tbl').innerHTML = `<table>
+      <thead><tr><th>Name</th><th>Price</th><th>Category</th><th>Available</th></tr></thead>
+      <tbody>${items.map(f=>`
+        <tr>
+          <td><strong>${esc(f.name)}</strong></td>
+          <td>$${Number(f.price).toFixed(2)}</td>
+          <td>${f.category}</td>
+          <td><span class="badge ${f.available?'badge-ok':'badge-no'}">${f.available?'Yes':'No'}</span></td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  } catch(e) { toast(e.message,'err'); }
+}
+
+// Pre-fill update fields on select
+document.getElementById('a-sel').addEventListener('change', function(){
+  const opt = this.options[this.selectedIndex];
+  if (opt.value) {
+    document.getElementById('a-uprice').value = opt.dataset.price;
+    document.getElementById('a-uavail').value = opt.dataset.avail;
+  }
+});
+
+document.getElementById('a-add-btn').addEventListener('click', async ()=>{
+  const name  = document.getElementById('a-name').value.trim();
+  const price = parseFloat(document.getElementById('a-price').value);
+  const cat   = document.getElementById('a-cat').value;
+  const avail = document.getElementById('a-avail').value==='true';
+  if (!name||isNaN(price)) { toast('Fill in name and price','err'); return; }
+  try {
+    await post('menu_items', { name, price, category: cat, available: avail });
+    toast('Item added ✓','ok');
+    document.getElementById('a-name').value='';
+    document.getElementById('a-price').value='';
+    loadAdminMenu(); loadMenu();
+  } catch(e) { toast(e.message,'err'); }
+});
+
+document.getElementById('a-upd-btn').addEventListener('click', async ()=>{
+  const id    = document.getElementById('a-sel').value;
+  const price = parseFloat(document.getElementById('a-uprice').value);
+  const avail = document.getElementById('a-uavail').value==='true';
+  if (!id) { toast('Select an item','err'); return; }
+  try {
+    await patch(`menu_items?id=eq.${id}`, { price, available: avail });
+    toast('Updated ✓','ok');
+    loadAdminMenu(); loadMenu();
+  } catch(e) { toast(e.message,'err'); }
+});
+
+document.getElementById('a-del-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('a-sel').value;
+  const name = document.getElementById('a-sel').options[document.getElementById('a-sel').selectedIndex].text;
+  if (!id) { toast('Select an item','err'); return; }
+  if (!confirm(`Remove "${name}" from menu?`)) return;
+  try {
+    await del(`menu_items?id=eq.${id}`);
+    toast('Removed','ok');
+    loadAdminMenu(); loadMenu();
+  } catch(e) { toast(e.message,'err'); }
+});
+
+async function loadAdminOrders() {
+  try {
+    const orders = await get('orders?status=eq.Preparing&order=is_vip.desc,created_at.asc');
+    const vip = orders.filter(o=>o.is_vip);
+    const reg = orders.filter(o=>!o.is_vip);
+    renderAdminOrders('adm-vip', vip);
+    renderAdminOrders('adm-reg', reg);
+  } catch(e) { toast(e.message,'err'); }
+}
+
+async function renderAdminOrders(elId, orders) {
+  const el = document.getElementById(elId);
+  if (!orders.length) { el.innerHTML='<div class="empty"><div class="ico">✅</div>No pending orders</div>'; return; }
+  const html = await Promise.all(orders.map(async o=>{
+    const items = await get(`order_items?order_id=eq.${o.id}`);
+    return `<div style="border:1px solid var(--border);border-radius:8px;padding:.8rem;margin-bottom:.6rem">
+      <strong>${esc(o.customer_name)}</strong>${o.is_vip?' 👑':''} — Order #${o.id}
+      <div style="font-size:.82rem;color:var(--muted)">📍 ${esc(o.delivery_address)}</div>
+      <ul style="font-size:.85rem;padding-left:1rem;margin-top:.3rem">
+        ${items.map(i=>`<li>${esc(i.item_name)} ×${i.quantity}${i.special_request?' <em>('+esc(i.special_request)+')</em>':''}</li>`).join('')}
+      </ul>
+      <button class="btn btn-success btn-sm mt1" onclick="processOrder(${o.id})">✅ Mark Out for Delivery</button>
+    </div>`;
+  }));
+  el.innerHTML = html.join('');
+}
+
+window.processOrder = async function(orderId) {
+  try {
+    await patch(`orders?id=eq.${orderId}`, { status: 'Out for Delivery' });
+    toast('Order marked as Out for Delivery ✓','ok');
+    loadAdminOrders();
+  } catch(e) { toast(e.message,'err'); }
+};
+
+document.getElementById('proc-vip').addEventListener('click', async ()=>{
+  try {
+    await patch('orders?status=eq.Preparing&is_vip=eq.true', { status:'Out for Delivery' });
+    toast('All VIP orders processed ✓','ok'); loadAdminOrders();
+  } catch(e) { toast(e.message,'err'); }
+});
+
+document.getElementById('proc-reg').addEventListener('click', async ()=>{
+  const vipPending = await get('orders?status=eq.Preparing&is_vip=eq.true');
+  if (vipPending.length) { toast('Process all VIP orders first!','err'); return; }
+  try {
+    await patch('orders?status=eq.Preparing&is_vip=eq.false', { status:'Out for Delivery' });
+    toast('All regular orders processed ✓','ok'); loadAdminOrders();
+  } catch(e) { toast(e.message,'err'); }
+});
+
+async function loadReport() {
+  try {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const orders = await get(`orders?created_at=gte.${today.toISOString()}&status=neq.Cancelled`);
+    const ids = orders.map(o=>o.id);
+    let sales = 0, popular = {}, popName = '—', popMax = 0;
+    if (ids.length) {
+      const items = await get(`order_items?order_id=in.(${ids.join(',')})`);
+      items.forEach(i=>{ sales+=i.price*i.quantity; popular[i.item_name]=(popular[i.item_name]||0)+i.quantity; });
+      Object.entries(popular).forEach(([n,c])=>{ if(c>popMax){popMax=c;popName=n;} });
+    }
+    document.getElementById('rep-sales').textContent   = '$'+sales.toFixed(2);
+    document.getElementById('rep-orders').textContent  = orders.length;
+    document.getElementById('rep-pop').textContent     = popName + (popMax?` (${popMax}×)`:'');
+  } catch(e) { toast(e.message,'err'); }
+}
+document.getElementById('rep-refresh').addEventListener('click', loadReport);
+document.getElementById('new-day-btn').addEventListener('click', async ()=>{
+  if (!confirm('Mark all delivered orders as closed for today?')) return;
+  try {
+    await patch('orders?status=eq.Out for Delivery', { status:'Delivered' });
+    toast('New day started ✓','ok'); loadReport();
+  } catch(e) { toast(e.message,'err'); }
+});
+
+async function loadCustomers() {
+  try {
+    const rows = await get('customers?order=is_vip.desc,name');
+    document.getElementById('cust-tbl').innerHTML = `<table>
+      <thead><tr><th>Name</th><th>Roll No</th><th>Type</th><th>Joined</th></tr></thead>
+      <tbody>${rows.map(c=>`
+        <tr>
+          <td><strong>${esc(c.name)}</strong></td>
+          <td>${c.roll_number}</td>
+          <td><span class="badge ${c.is_vip?'badge-vip':'badge-prep'}">${c.is_vip?'👑 VIP':'Regular'}</span></td>
+          <td style="color:var(--muted);font-size:.82rem">${new Date(c.created_at).toLocaleDateString()}</td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  } catch(e) { toast(e.message,'err'); }
+}
+
+// ════════════════════════════════════════════════════════
+//  Utils
+// ════════════════════════════════════════════════════════
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init
+loadMenu();
+</script>
+</body>
+</html>

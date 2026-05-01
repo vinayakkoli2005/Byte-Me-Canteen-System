@@ -1,0 +1,65 @@
+Byte Me! - CLI Food Ordering System
+-------------------------------------
+Byte Me! is a command-line-based food ordering system designed for a college canteen. It enables students to browse the
+menu, place orders, and track them, while canteen staff can manage menu items, process orders, and generate reports.
+
+Features
+------------
+
+-> Admin Interface
+   --------------
+
+-Menu Management: Add, update, or remove food items.
+-Order Management: View, update, and prioritize orders, handle refunds, and process special requests.
+-Reports: Generate daily sales reports, including popular items and total sales.
+
+->Customer Interface
+  -------------------
+
+-Customer Types: VIP orders are prioritized over regular orders.
+-Menu Browsing: View, search, filter, and sort menu items.
+-Cart Management: Add, modify, remove items, and checkout.
+-Order Tracking: Track order status, cancel orders, and view order history.
+-Reviews: Leave and view reviews for food items.
+
+->Technical Details
+  -------------------
+-Uses Java collections like ArrayList, TreeMap, and PriorityQueue for efficient data management.
+-Follows OOP principles, including encapsulation and inheritance.
+
+
+
+Assumption 1
+---------------
+- Daily sales only count whe admin updates the order and marks them up for delivery
+
+Assumption 2
+---------------
+- Most popular item and the number of items are calculated when a customer checks out from his cart and order the food not when admin update the food status.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

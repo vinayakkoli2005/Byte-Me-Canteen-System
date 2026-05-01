@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Byte Me! — College Canteen</title>
+  <style>
+    /* ── Reset & Tokens ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --brand:       #ff6b35;
+      --brand-dark:  #e55a25;
+      --brand-light: #fff3ee;
+      --accent:      #2ec4b6;
+      --bg:          #f8f9fb;
+      --surface:     #ffffff;
+      --border:      #e8eaed;
+      --text:        #1a1a2e;
+      --muted:       #6b7280;
+      --success:     #22c55e;
+      --warning:     #f59e0b;
+      --danger:      #ef4444;
+      --vip:         #a855f7;
+      --radius:      12px;
+      --shadow:      0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+      --shadow-lg:   0 8px 32px rgba(0,0,0,.12);
+    }
+    html { font-size: 16px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.5;
+    }
+    button { cursor: pointer; font: inherit; border: none; }
+    input, select, textarea { font: inherit; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ── Layout ──────────────────────────────────────────────────────── */
+    .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+      height: 60px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .logo { font-size: 1.4rem; font-weight: 800; color: var(--brand); letter-spacing: -.5px; }
+    .logo span { color: var(--text); }
+    nav { display: flex; gap: .25rem; flex: 1; }
+    .nav-btn {
+      padding: .45rem .9rem; border-radius: 8px; font-weight: 500; font-size: .875rem;
+      background: transparent; color: var(--muted); transition: all .15s;
+    }
+    .nav-btn:hover, .nav-btn.active { background: var(--brand-light); color: var(--brand); }
+    .header-right { display: flex; align-items: center; gap: .75rem; }
+    .customer-badge {
+      font-size: .8rem; font-weight: 600; padding: .3rem .7rem;
+      border-radius: 999px; background: var(--brand-light); color: var(--brand);
+      display: none;
+    }
+    .customer-badge.vip { background: #f5f0ff; color: var(--vip); }
+    .customer-badge.show { display: inline-flex; align-items: center; gap: .35rem; }
+
+    main { flex: 1; padding: 1.5rem; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+    /* ── Cards ───────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow);
+    }
+    .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: .5rem; }
+
+    /* ── Grid ────────────────────────────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+    @media(max-width:700px) { .grid-2,.grid-3 { grid-template-columns: 1fr; } }
+
+    /* ── Tabs ────────────────────────────────────────────────────────── */
+    .tabs { display: flex; gap: .25rem; border-bottom: 2px solid var(--border); margin-bottom: 1.25rem; }
+    .tab {
+      padding: .55rem 1rem; font-weight: 600; font-size: .875rem; border-radius: 8px 8px 0 0;
+      background: transparent; color: var(--muted); border-bottom: 2px solid transparent;
+      margin-bottom: -2px; transition: all .15s;
+    }
+    .tab.active { color: var(--brand); border-bottom-color: var(--brand); background: var(--brand-light); }
+
+    /* ── Food Cards ──────────────────────────────────────────────────── */
+    .food-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+    .food-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem; transition: box-shadow .2s;
+    }
+    .food-card:hover { box-shadow: var(--shadow-lg); }
+    .food-card.unavailable { opacity: .55; }
+    .food-name { font-weight: 700; font-size: .95rem; margin-bottom: .25rem; }
+    .food-price { font-size: 1.1rem; font-weight: 800; color: var(--brand); }
+    .food-cat { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .5rem; }
+    .avail-badge {
+      font-size: .7rem; font-weight: 700; padding: .15rem .5rem; border-radius: 999px;
+      display: inline-block; margin-bottom: .75rem;
+    }
+    .avail-badge.yes { background: #dcfce7; color: #16a34a; }
+    .avail-badge.no  { background: #fee2e2; color: #dc2626; }
+    .add-btn {
+      width: 100%; padding: .5rem; border-radius: 8px;
+      background: var(--brand); color: #fff; font-weight: 600; font-size: .875rem;
+      transition: background .15s;
+    }
+    .add-btn:hover { background: var(--brand-dark); }
+    .add-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+    /* ── Forms ───────────────────────────────────────────────────────── */
+    .form-group { margin-bottom: .9rem; }
+    label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: .35rem; color: var(--muted); }
+    input[type=text], input[type=number], input[type=email], select, textarea {
+      width: 100%; padding: .6rem .8rem; border: 1.5px solid var(--border);
+      border-radius: 8px; transition: border-color .15s; background: var(--surface);
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(255,107,53,.12);
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .6rem 1.2rem; border-radius: 8px;
+      font-weight: 600; font-size: .875rem; transition: all .15s;
+    }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-primary:hover { background: var(--brand-dark); }
+    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--brand); color: var(--brand); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-vip { background: var(--vip); color: #fff; }
+    .btn-sm { padding: .35rem .75rem; font-size: .8rem; }
+
+    /* ── Table ───────────────────────────────────────────────────────── */
+    .tbl-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    th { background: var(--bg); padding: .75rem 1rem; text-align: left; font-weight: 700; font-size: .8rem;
+         text-transform: uppercase; letter-spacing: .4px; color: var(--muted); border-bottom: 1px solid var(--border); }
+    td { padding: .7rem 1rem; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg); }
+
+    /* ── Cart ────────────────────────────────────────────────────────── */
+    .cart-item {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .6rem 0; border-bottom: 1px solid var(--border);
+    }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-item-name { flex: 1; font-weight: 600; }
+    .cart-item-meta { font-size: .8rem; color: var(--muted); }
+    .cart-total {
+      margin-top: 1rem; padding-top: 1rem; border-top: 2px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .cart-total-label { font-weight: 700; font-size: 1rem; }
+    .cart-total-amount { font-weight: 800; font-size: 1.3rem; color: var(--brand); }
+
+    /* ── Status Pill ─────────────────────────────────────────────────── */
+    .pill {
+      display: inline-block; padding: .2rem .65rem; border-radius: 999px;
+      font-size: .75rem; font-weight: 700;
+    }
+    .pill-prep     { background: #fef9c3; color: #854d0e; }
+    .pill-delivery { background: #dcfce7; color: #166534; }
+    .pill-denied   { background: #fee2e2; color: #991b1b; }
+
+    /* ── Stats ───────────────────────────────────────────────────────── */
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem; text-align: center;
+    }
+    .stat-value { font-size: 2rem; font-weight: 800; color: var(--brand); }
+    .stat-label { font-size: .8rem; color: var(--muted); font-weight: 600; margin-top: .25rem; }
+
+    /* ── Toast ───────────────────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 999;
+      background: var(--text); color: #fff; padding: .75rem 1.25rem;
+      border-radius: 10px; font-size: .875rem; font-weight: 500;
+      box-shadow: var(--shadow-lg); opacity: 0; transform: translateY(8px);
+      transition: all .25s; pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { background: var(--success); }
+    #toast.error   { background: var(--danger); }
+
+    /* ── Login Modal ─────────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.45);
+      display: flex; align-items: center; justify-content: center; z-index: 200;
+    }
+    .modal {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 2rem; width: min(420px, 94vw); box-shadow: var(--shadow-lg);
+    }
+    .modal h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 1.25rem; }
+    .modal-footer { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.25rem; }
+
+    /* ── Misc ────────────────────────────────────────────────────────── */
+    .empty-state { text-align: center; padding: 3rem; color: var(--muted); }
+    .empty-state .emoji { font-size: 3rem; margin-bottom: .75rem; }
+    .section-actions { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+    .text-muted { color: var(--muted); font-size: .875rem; }
+    .mt-1 { margin-top: .5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .hidden { display: none !important; }
+    #page-menu, #page-cart, #page-orders, #page-admin { display: none; }
+    #page-menu.active, #page-cart.active, #page-orders.active, #page-admin.active { display: block; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <header>
+    <div class="logo">Byte<span> Me!</span></div>
+    <nav>
+      <button class="nav-btn active" data-page="menu">Menu</button>
+      <button class="nav-btn" data-page="cart">Cart</button>
+      <button class="nav-btn" data-page="orders">Orders</button>
+      <button class="nav-btn" data-page="admin">Admin</button>
+    </nav>
+    <div class="header-right">
+      <div class="customer-badge" id="customer-badge"></div>
+      <button class="btn btn-outline btn-sm" id="login-btn">Login</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ── Menu Page ─────────────────────────────────────────────── -->
+    <div id="page-menu" class="active">
+      <div class="card">
+        <div class="card-title">🍽️ Canteen Menu
+          <span class="text-muted" style="font-weight:400;font-size:.875rem;margin-left:.5rem" id="menu-count"></span>
+        </div>
+        <div class="section-actions">
+          <input type="text" id="search-input" placeholder="Search items…" style="flex:1;min-width:160px;max-width:280px">
+          <select id="filter-cat" style="width:140px">
+            <option value="">All Categories</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Drinks">Drinks</option>
+            <option value="Meals">Meals</option>
+          </select>
+          <select id="sort-price" style="width:140px">
+            <option value="">Sort by Price</option>
+            <option value="asc">Price: Low → High</option>
+            <option value="desc">Price: High → Low</option>
+          </select>
+        </div>
+        <div class="food-grid" id="food-grid"></div>
+      </div>
+    </div>
+
+    <!-- ── Cart Page ─────────────────────────────────────────────── -->
+    <div id="page-cart">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🛒 Your Cart</div>
+          <div id="cart-items"></div>
+          <div class="cart-total" id="cart-total" style="display:none">
+            <span class="cart-total-label">Total</span>
+            <span class="cart-total-amount" id="cart-total-amount">$0.00</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">💳 Checkout</div>
+          <div class="form-group">
+            <label>Delivery Address</label>
+            <input type="text" id="checkout-address" placeholder="Block A, Room 101">
+          </div>
+          <div class="form-group">
+            <label>Payment Method</label>
+            <select id="checkout-payment">
+              <option value="Cash">Cash on Delivery</option>
+              <option value="UPI">UPI / Online</option>
+            </select>
+          </div>
+          <div class="form-group hidden" id="upi-field">
+            <label>UPI ID</label>
+            <input type="text" id="checkout-upi" placeholder="yourname@upi">
+          </div>
+          <button class="btn btn-primary" style="width:100%" id="checkout-btn">Place Order</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Orders Page ────────────────────────────────────────────── -->
+    <div id="page-orders">
+      <div class="card">
+        <div class="card-title">📦 Order Status</div>
+        <div class="tabs">
+          <button class="tab active" data-tab="pending-orders">Pending</button>
+          <button class="tab" data-tab="history-orders">My History</button>
+        </div>
+        <div id="pending-orders">
+          <div id="order-status-list"></div>
+        </div>
+        <div id="history-orders" style="display:none">
+          <div id="order-history-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Admin Page ─────────────────────────────────────────────── -->
+    <div id="page-admin">
+      <div class="tabs" style="margin-bottom:1.5rem">
+        <button class="tab active" data-atab="admin-menu">Menu Mgmt</button>
+        <button class="tab" data-atab="admin-orders">Order Mgmt</button>
+        <button class="tab" data-atab="admin-report">Report</button>
+        <button class="tab" data-atab="admin-customers">Customers</button>
+      </div>
+
+      <!-- Admin: Menu Management -->
+      <div id="admin-menu">
+        <div class="grid-2" style="align-items:start">
+          <div class="card">
+            <div class="card-title">➕ Add Menu Item</div>
+            <div class="form-group"><label>Item Name</label><input type="text" id="a-item-name" placeholder="e.g. Samosa"></div>
+            <div class="form-group"><label>Price ($)</label><input type="number" id="a-item-price" placeholder="2.50" min="0" step="0.01"></div>
+            <div class="form-group">
+              <label>Category</label>
+              <select id="a-item-cat">
+                <option value="Snacks">Snacks</option>
+                <option value="Drinks">Drinks</option>
+                <option value="Meals">Meals</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Available</label>
+              <select id="a-item-avail">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="a-add-item-btn">Add Item</button>
+          </div>
+          <div class="card">
+            <div class="card-title">✏️ Update Item</div>
+            <div class="form-group">
+              <label>Select Item</label>
+              <select id="a-update-select"><option value="">-- choose --</option></select>
+            </div>
+            <div class="form-group"><label>New Price ($)</label><input type="number" id="a-update-price" min="0" step="0.01"></div>
+            <div class="form-group">
+              <label>Available</label>
+              <select id="a-update-avail">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn btn-primary" id="a-update-btn">Update</button>
+              <button class="btn btn-danger btn-sm" id="a-remove-btn">Remove Item</button>
+            </div>
+          </div>
+        </div>
+        <div class="card mt-2">
+          <div class="card-title">📋 Current Menu</div>
+          <div class="tbl-wrap" id="admin-menu-table"></div>
+        </div>
+      </div>
+
+      <!-- Admin: Order Management -->
+      <div id="admin-orders" style="display:none">
+        <div class="section-actions">
+          <button class="btn btn-vip" id="process-vip-btn">✅ Process All VIP Orders</button>
+          <button class="btn btn-success" id="process-reg-btn">✅ Process All Regular Orders</button>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title" style="color:var(--vip)">👑 VIP Pending Orders</div>
+            <div id="admin-vip-orders"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🔵 Regular Pending Orders</div>
+            <div id="admin-reg-orders"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin: Report -->
+      <div id="admin-report" style="display:none">
+        <div class="grid-3">
+          <div class="stat-card"><div class="stat-value" id="rep-sales">$0</div><div class="stat-label">Daily Sales</div></div>
+          <div class="stat-card"><div class="stat-value" id="rep-orders">0</div><div class="stat-label">Total Orders</div></div>
+          <div class="stat-card"><div class="stat-value" id="rep-popular" style="font-size:1.1rem">—</div><div class="stat-label">Most Popular Item</div></div>
+        </div>
+        <div class="section-actions mt-2">
+          <button class="btn btn-outline" id="new-day-btn">🔄 Reset for New Day</button>
+          <button class="btn btn-primary" id="refresh-report-btn">↻ Refresh</button>
+        </div>
+      </div>
+
+      <!-- Admin: Customers -->
+      <div id="admin-customers" style="display:none">
+        <div class="card">
+          <div class="card-title">👥 Registered Customers</div>
+          <div class="tbl-wrap" id="customers-table"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-overlay hidden" id="login-modal">
+  <div class="modal">
+    <h2>Welcome to Byte Me! 🍔</h2>
+    <div class="form-group">
+      <label>Your Name</label>
+      <input type="text" id="login-name" placeholder="Enter your name">
+    </div>
+    <div id="new-customer-fields" class="hidden">
+      <div class="form-group">
+        <label>Roll Number</label>
+        <input type="number" id="login-roll" placeholder="e.g. 12345">
+      </div>
+      <div class="form-group">
+        <label>Membership</label>
+        <select id="login-vip">
+          <option value="false">Regular</option>
+          <option value="true">VIP ($5/month — priority orders)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="login-cancel">Cancel</button>
+      <button class="btn btn-primary" id="login-submit">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add-to-Cart Modal -->
+<div class="modal-overlay hidden" id="cart-modal">
+  <div class="modal">
+    <h2 id="cart-modal-title">Add to Cart</h2>
+    <div class="form-group">
+      <label>Quantity</label>
+      <input type="number" id="cart-qty" value="1" min="1">
+    </div>
+    <div class="form-group">
+      <label>Special Request <span class="text-muted">(optional)</span></label>
+      <input type="text" id="cart-special" placeholder="e.g. No onions">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="cart-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="cart-modal-confirm">Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const API = '';  // same origin
+let currentCustomer = null;
+let allMenuItems    = [];
+let pendingAddItem  = null;
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = ''; }, 2800);
+}
+
+// ── API helpers ────────────────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  try {
+    const res = await fetch(API + path, opts);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  } catch (e) {
+    toast(e.message, 'error');
+    throw e;
+  }
+}
+
+function jsonPost(path, body) {
+  return api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const page = btn.dataset.page;
+    document.querySelectorAll('main > div').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    if (page === 'menu')   loadMenu();
+    if (page === 'cart')   loadCart();
+    if (page === 'orders') loadOrders();
+    if (page === 'admin')  { loadAdminMenu(); loadAdminOrders(); }
+  });
+});
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+document.querySelectorAll('[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const id = btn.dataset.tab;
+    ['pending-orders','history-orders'].forEach(t => {
+      document.getElementById(t).style.display = t === id ? '' : 'none';
+    });
+    if (id === 'history-orders') loadHistory();
+  });
+});
+
+document.querySelectorAll('[data-atab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-atab]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const id = btn.dataset.atab;
+    ['admin-menu','admin-orders','admin-report','admin-customers'].forEach(t => {
+      document.getElementById(t).style.display = t === id ? '' : 'none';
+    });
+    if (id === 'admin-report')    loadReport();
+    if (id === 'admin-customers') loadCustomers();
+    if (id === 'admin-orders')    loadAdminOrders();
+  });
+});
+
+// ── Login ──────────────────────────────────────────────────────────────────
+document.getElementById('login-btn').addEventListener('click', () => {
+  document.getElementById('login-modal').classList.remove('hidden');
+  document.getElementById('login-name').focus();
+});
+document.getElementById('login-cancel').addEventListener('click', () => {
+  document.getElementById('login-modal').classList.add('hidden');
+});
+
+document.getElementById('login-name').addEventListener('input', async () => {
+  const name = document.getElementById('login-name').value.trim();
+  if (name.length < 2) { document.getElementById('new-customer-fields').classList.add('hidden'); return; }
+  try {
+    const customers = await api('/api/customers');
+    const exists = customers.find(c => c.name.toLowerCase() === name.toLowerCase());
+    document.getElementById('new-customer-fields').classList.toggle('hidden', !!exists);
+  } catch(e) {}
+});
+
+document.getElementById('login-submit').addEventListener('click', async () => {
+  const name = document.getElementById('login-name').value.trim();
+  if (!name) { toast('Please enter your name', 'error'); return; }
+
+  try {
+    const customers = await api('/api/customers');
+    let found = customers.find(c => c.name.toLowerCase() === name.toLowerCase());
+
+    if (!found) {
+      const roll = parseInt(document.getElementById('login-roll').value) || 0;
+      const vip  = document.getElementById('login-vip').value === 'true';
+      await jsonPost('/api/customers', { name, roll, vip });
+      found = { name, roll, vip };
+    }
+
+    currentCustomer = found;
+    updateCustomerBadge();
+    document.getElementById('login-modal').classList.add('hidden');
+    toast('Welcome, ' + found.name + (found.vip ? ' 👑' : '') + '!', 'success');
+    loadMenu();
+  } catch(e) {}
+});
+
+function updateCustomerBadge() {
+  const badge = document.getElementById('customer-badge');
+  if (currentCustomer) {
+    badge.textContent = (currentCustomer.vip ? '👑 ' : '') + currentCustomer.name;
+    badge.className = 'customer-badge show' + (currentCustomer.vip ? ' vip' : '');
+    document.getElementById('login-btn').textContent = 'Switch';
+  } else {
+    badge.className = 'customer-badge';
+    document.getElementById('login-btn').textContent = 'Login';
+  }
+}
+
+// ── Menu ───────────────────────────────────────────────────────────────────
+async function loadMenu() {
+  try {
+    allMenuItems = await api('/api/menu');
+    renderMenu();
+  } catch(e) {}
+}
+
+function renderMenu() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const cat    = document.getElementById('filter-cat').value;
+  const sort   = document.getElementById('sort-price').value;
+
+  let items = allMenuItems.filter(f => {
+    const matchSearch = !search || f.name.toLowerCase().includes(search);
+    const matchCat    = !cat    || f.category === cat;
+    return matchSearch && matchCat;
+  });
+
+  if (sort === 'asc')  items.sort((a,b) => a.price - b.price);
+  if (sort === 'desc') items.sort((a,b) => b.price - a.price);
+
+  document.getElementById('menu-count').textContent = items.length + ' items';
+
+  const grid = document.getElementById('food-grid');
+  if (items.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><div class="emoji">🍽️</div><p>No items found</p></div>';
+    return;
+  }
+
+  grid.innerHTML = items.map(f => `
+    <div class="food-card ${f.available ? '' : 'unavailable'}">
+      <div class="food-cat">${f.category}</div>
+      <div class="food-name">${esc(f.name)}</div>
+      <div class="food-price">$${f.price.toFixed(2)}</div>
+      <span class="avail-badge ${f.available ? 'yes' : 'no'}">${f.available ? 'In Stock' : 'Out of Stock'}</span>
+      <button class="add-btn" onclick="openCartModal('${esc(f.name)}')" ${!f.available ? 'disabled' : ''}>
+        + Add to Cart
+      </button>
+    </div>`).join('');
+}
+
+['search-input','filter-cat','sort-price'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderMenu);
+  document.getElementById(id).addEventListener('change', renderMenu);
+});
+
+// ── Cart Modal ─────────────────────────────────────────────────────────────
+function openCartModal(itemName) {
+  if (!currentCustomer) { toast('Please login first', 'error'); return; }
+  pendingAddItem = itemName;
+  document.getElementById('cart-modal-title').textContent = 'Add "' + itemName + '" to Cart';
+  document.getElementById('cart-qty').value = '1';
+  document.getElementById('cart-special').value = '';
+  document.getElementById('cart-modal').classList.remove('hidden');
+  document.getElementById('cart-qty').focus();
+}
+
+document.getElementById('cart-modal-cancel').addEventListener('click', () => {
+  document.getElementById('cart-modal').classList.add('hidden');
+});
+
+document.getElementById('cart-modal-confirm').addEventListener('click', async () => {
+  const qty     = parseInt(document.getElementById('cart-qty').value) || 1;
+  const special = document.getElementById('cart-special').value.trim() || null;
+  document.getElementById('cart-modal').classList.add('hidden');
+  try {
+    await jsonPost('/api/cart?customer=' + encodeURIComponent(currentCustomer.name), {
+      item: pendingAddItem, qty, special
+    });
+    toast(pendingAddItem + ' added to cart ✓', 'success');
+  } catch(e) {}
+});
+
+// ── Cart ───────────────────────────────────────────────────────────────────
+async function loadCart() {
+  if (!currentCustomer) {
+    document.getElementById('cart-items').innerHTML =
+      '<div class="empty-state"><div class="emoji">🔐</div><p>Please login to view your cart</p></div>';
+    document.getElementById('cart-total').style.display = 'none';
+    return;
+  }
+  try {
+    const data = await api('/api/cart?customer=' + encodeURIComponent(currentCustomer.name));
+    const el   = document.getElementById('cart-items');
+
+    if (data.items.length === 0) {
+      el.innerHTML = '<div class="empty-state"><div class="emoji">🛒</div><p>Your cart is empty</p></div>';
+      document.getElementById('cart-total').style.display = 'none';
+      return;
+    }
+
+    el.innerHTML = data.items.map(item => `
+      <div class="cart-item">
+        <div>
+          <div class="cart-item-name">${esc(item.name)}</div>
+          <div class="cart-item-meta">Qty: ${item.qty}${item.special ? ' · ' + esc(item.special) : ''}</div>
+        </div>
+        <div style="font-weight:700;margin-left:auto;margin-right:.75rem">$${(item.price * item.qty).toFixed(2)}</div>
+        <button class="btn btn-danger btn-sm" onclick="removeFromCart('${esc(item.name)}')">✕</button>
+      </div>`).join('');
+
+    document.getElementById('cart-total').style.display = 'flex';
+    document.getElementById('cart-total-amount').textContent = '$' + data.total.toFixed(2);
+  } catch(e) {}
+}
+
+async function removeFromCart(itemName) {
+  try {
+    await api('/api/cart?customer=' + encodeURIComponent(currentCustomer.name) + '&item=' + encodeURIComponent(itemName), { method: 'DELETE' });
+    toast(itemName + ' removed', '');
+    loadCart();
+  } catch(e) {}
+}
+
+document.getElementById('checkout-payment').addEventListener('change', function() {
+  document.getElementById('upi-field').classList.toggle('hidden', this.value !== 'UPI');
+});
+
+document.getElementById('checkout-btn').addEventListener('click', async () => {
+  if (!currentCustomer) { toast('Please login first', 'error'); return; }
+  const address = document.getElementById('checkout-address').value.trim() || 'Canteen';
+  const payment = document.getElementById('checkout-payment').value;
+  try {
+    const res = await jsonPost('/api/checkout', { customer: currentCustomer.name, address, payment });
+    toast('Order placed! ' + (res.vip ? '👑 VIP priority' : ''), 'success');
+    loadCart();
+  } catch(e) {}
+});
+
+// ── Orders ─────────────────────────────────────────────────────────────────
+async function loadOrders() {
+  if (!currentCustomer) {
+    document.getElementById('order-status-list').innerHTML =
+      '<div class="empty-state"><div class="emoji">🔐</div><p>Please login to view orders</p></div>';
+    return;
+  }
+  try {
+    const data = await api('/api/orders?customer=' + encodeURIComponent(currentCustomer.name));
+    const el   = document.getElementById('order-status-list');
+    const vipItems    = data.vip[currentCustomer.name]    || [];
+    const regItems    = data.regular[currentCustomer.name] || [];
+    const items = [...vipItems, ...regItems];
+
+    if (items.length === 0) {
+      el.innerHTML = '<div class="empty-state"><div class="emoji">📦</div><p>No pending orders</p></div>';
+      return;
+    }
+
+    el.innerHTML = `<div class="tbl-wrap"><table>
+      <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Special</th><th>Status</th></tr></thead>
+      <tbody>${items.map(f => `
+        <tr>
+          <td><strong>${esc(f.name)}</strong></td>
+          <td>${f.qty}</td>
+          <td>$${(f.price * f.qty).toFixed(2)}</td>
+          <td>${f.special ? esc(f.special) : '—'}</td>
+          <td><span class="pill ${statusClass(f.status)}">${esc(f.status)}</span></td>
+        </tr>`).join('')}
+      </tbody></table></div>`;
+  } catch(e) {}
+}
+
+async function loadHistory() {
+  if (!currentCustomer) return;
+  try {
+    const data = await api('/api/orders');
+    const el   = document.getElementById('order-history-list');
+    // History shown from all completed (Daily_sales equivalent) — reuse orders for now
+    el.innerHTML = '<div class="empty-state"><div class="emoji">📜</div><p>Order history is stored per-session. Place an order to see it here.</p></div>';
+  } catch(e) {}
+}
+
+function statusClass(s) {
+  if (!s) return 'pill-prep';
+  if (s.toLowerCase().includes('delivery')) return 'pill-delivery';
+  if (s.toLowerCase().includes('denied'))   return 'pill-denied';
+  return 'pill-prep';
+}
+
+// ── Admin ──────────────────────────────────────────────────────────────────
+async function loadAdminMenu() {
+  try {
+    const items = await api('/api/menu');
+    // Populate update select
+    const sel = document.getElementById('a-update-select');
+    sel.innerHTML = '<option value="">-- choose --</option>' +
+      items.map(f => `<option value="${esc(f.name)}">${esc(f.name)}</option>`).join('');
+
+    // Fill table
+    document.getElementById('admin-menu-table').innerHTML = `<table>
+      <thead><tr><th>Name</th><th>Price</th><th>Category</th><th>Available</th></tr></thead>
+      <tbody>${items.map(f => `
+        <tr>
+          <td><strong>${esc(f.name)}</strong></td>
+          <td>$${f.price.toFixed(2)}</td>
+          <td>${f.category}</td>
+          <td><span class="pill ${f.available ? 'pill-delivery' : 'pill-denied'}">${f.available ? 'Yes' : 'No'}</span></td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  } catch(e) {}
+}
+
+document.getElementById('a-add-item-btn').addEventListener('click', async () => {
+  const name  = document.getElementById('a-item-name').value.trim();
+  const price = parseFloat(document.getElementById('a-item-price').value);
+  const cat   = document.getElementById('a-item-cat').value;
+  const avail = document.getElementById('a-item-avail').value === 'true';
+  if (!name || isNaN(price)) { toast('Fill in name and price', 'error'); return; }
+  try {
+    await jsonPost('/api/menu', { name, price, category: cat, available: avail });
+    toast('Item added ✓', 'success');
+    loadAdminMenu();
+    document.getElementById('a-item-name').value = '';
+    document.getElementById('a-item-price').value = '';
+  } catch(e) {}
+});
+
+document.getElementById('a-update-btn').addEventListener('click', async () => {
+  const name  = document.getElementById('a-update-select').value;
+  const price = parseFloat(document.getElementById('a-update-price').value);
+  const avail = document.getElementById('a-update-avail').value;
+  if (!name) { toast('Select an item', 'error'); return; }
+  try {
+    await api('/api/menu', { method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, price: isNaN(price) ? undefined : price, available: avail === 'true' }) });
+    toast('Item updated ✓', 'success');
+    loadAdminMenu();
+    allMenuItems = await api('/api/menu');
+    renderMenu();
+  } catch(e) {}
+});
+
+document.getElementById('a-remove-btn').addEventListener('click', async () => {
+  const name = document.getElementById('a-update-select').value;
+  if (!name) { toast('Select an item to remove', 'error'); return; }
+  if (!confirm('Remove "' + name + '" from the menu?')) return;
+  try {
+    await api('/api/menu?name=' + encodeURIComponent(name), { method: 'DELETE' });
+    toast('Item removed', '');
+    loadAdminMenu();
+    allMenuItems = await api('/api/menu');
+    renderMenu();
+  } catch(e) {}
+});
+
+async function loadAdminOrders() {
+  try {
+    const data = await api('/api/orders');
+    renderAdminOrders('admin-vip-orders', data.vip);
+    renderAdminOrders('admin-reg-orders', data.regular);
+  } catch(e) {}
+}
+
+function renderAdminOrders(elId, orders) {
+  const el = document.getElementById(elId);
+  const entries = Object.entries(orders);
+  if (entries.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="emoji">✅</div><p>No pending orders</p></div>';
+    return;
+  }
+  el.innerHTML = entries.map(([cust, items]) => `
+    <div style="margin-bottom:.75rem;padding:.75rem;border:1px solid var(--border);border-radius:8px">
+      <strong>${esc(cust)}</strong>
+      <ul style="margin-top:.4rem;padding-left:1rem;font-size:.85rem">
+        ${items.map(f => `<li>${esc(f.name)} ×${f.qty}${f.special ? ' <em>('+esc(f.special)+')</em>' : ''}</li>`).join('')}
+      </ul>
+    </div>`).join('');
+}
+
+document.getElementById('process-vip-btn').addEventListener('click', async () => {
+  try {
+    const r = await api('/api/admin?action=processVip');
+    toast('Processed ' + r.processed + ' VIP order(s) ✓', 'success');
+    loadAdminOrders();
+  } catch(e) {}
+});
+
+document.getElementById('process-reg-btn').addEventListener('click', async () => {
+  try {
+    const r = await api('/api/admin?action=processRegular');
+    toast('Processed ' + r.processed + ' regular order(s) ✓', 'success');
+    loadAdminOrders();
+  } catch(e) {}
+});
+
+async function loadReport() {
+  try {
+    const r = await api('/api/report');
+    document.getElementById('rep-sales').textContent   = '$' + r.dailySales.toFixed(2);
+    document.getElementById('rep-orders').textContent  = r.totalOrders;
+    document.getElementById('rep-popular').textContent = r.popularItem + (r.popularCount ? ' (' + r.popularCount + ')' : '');
+  } catch(e) {}
+}
+
+document.getElementById('refresh-report-btn').addEventListener('click', loadReport);
+document.getElementById('new-day-btn').addEventListener('click', async () => {
+  if (!confirm('Reset daily sales for a new day?')) return;
+  try {
+    await api('/api/admin?action=newDay');
+    toast('Day reset ✓', 'success');
+    loadReport();
+  } catch(e) {}
+});
+
+async function loadCustomers() {
+  try {
+    const customers = await api('/api/customers');
+    document.getElementById('customers-table').innerHTML = `<table>
+      <thead><tr><th>Name</th><th>Roll No</th><th>Type</th></tr></thead>
+      <tbody>${customers.map(c => `
+        <tr>
+          <td><strong>${esc(c.name)}</strong></td>
+          <td>${c.roll}</td>
+          <td><span class="pill ${c.vip ? 'pill-delivery' : 'pill-prep'}">${c.vip ? '👑 VIP' : 'Regular'}</span></td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  } catch(e) {}
+}
+
+// ── Utils ──────────────────────────────────────────────────────────────────
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+loadMenu();
+</script>
+</body>
+</html>

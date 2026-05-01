@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "mcp__plugin_context-mode_context-mode__ctx_execute",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\" -Recurse -Filter \"mvn.cmd\" -ErrorAction SilentlyContinue | Select-Object -First 5 FullName; Get-ChildItem \"$env:USERPROFILE\" -Recurse -Filter \"mvn.cmd\" -Depth 4 -ErrorAction SilentlyContinue | Select-Object -First 3 FullName)",
+      "PowerShell($javac = \"C:\\\\Program Files\\\\Java\\\\jdk-17\\\\bin\\\\javac.exe\")",
+      "PowerShell($src = \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\\\\src\\\\main\\\\java\")",
+      "PowerShell($test = \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\\\\src\\\\test\\\\java\")",
+      "PowerShell($out = \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\\\\target\\\\classes\")",
+      "PowerShell($java = \"C:\\\\Program Files\\\\Java\\\\jdk-17\\\\bin\\\\java.exe\"; $out = \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\\\\target\\\\classes\"; Start-Process -FilePath $java -ArgumentList \"-cp\", \"`\"$out`\"\", \"Main\" -WorkingDirectory \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\" -WindowStyle Normal; Start-Sleep -Seconds 3; Write-Host \"Server started\")",
+      "PowerShell(Start-Sleep -Seconds 2; try { $r = Invoke-WebRequest -Uri \"http://localhost:8080/api/menu\" -TimeoutSec 5 -UseBasicParsing; Write-Host \"Server responding: $\\($r.StatusCode\\)\" } catch { Write-Host \"Not yet: $_\" })",
+      "PowerShell($java = \"C:\\\\Program Files\\\\Java\\\\jdk-17\\\\bin\\\\java.exe\"; $out = \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\\\\target\\\\classes\"; $root = \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\"; # Kill any previous instance on 8080 $proc = Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue | Select-Object -First 1 OwningProcess; if \\($proc\\) { Stop-Process -Id $proc.OwningProcess -Force -ErrorAction SilentlyContinue; Start-Sleep 1 }; Start-Process -FilePath $java -ArgumentList \"-cp\", $out, \"WebLauncher\" -WorkingDirectory $root -WindowStyle Minimized; Write-Host \"Launched WebLauncher\")",
+      "PowerShell($java = \"C:\\\\Program Files\\\\Java\\\\jdk-17\\\\bin\\\\java.exe\")",
+      "PowerShell($root = \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\")",
+      "PowerShell(Start-Sleep -Seconds 4; try { $r = Invoke-WebRequest -Uri \"http://localhost:8080/api/menu\" -TimeoutSec 5 -UseBasicParsing; Write-Host \"UP - Status $\\($r.StatusCode\\)\"; Write-Host $r.Content.Substring\\(0, [Math]::Min\\(200, $r.Content.Length\\)\\) } catch { Write-Host \"DOWN: $_\" })",
+      "PowerShell($java = \"C:\\\\Program Files\\\\Java\\\\jdk-17\\\\bin\\\\java.exe\"; $out = \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\\\\target\\\\classes\"; $root = \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\"; Push-Location $root; $job = Start-Job -ScriptBlock { param\\($j,$o\\) Set-Location $using:root; & $using:java -cp $using:out WebLauncher 2>&1 }; Start-Sleep -Seconds 5; Receive-Job $job; try { $r = Invoke-WebRequest \"http://localhost:8080/api/menu\" -TimeoutSec 3 -UseBasicParsing; Write-Host \"SERVER UP: $\\($r.StatusCode\\)\" } catch { Write-Host \"Still down\" }; Stop-Job $job; Remove-Job $job)",
+      "PowerShell(Start-Process \"c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\\\\web\\\\index.html\")",
+      "PowerShell(Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd 'c:\\\\Users\\\\vinay\\\\OneDrive\\\\Desktop\\\\Byte me\\\\web'; python -m http.server 3000\")",
+      "PowerShell(Start-Process \"http://localhost:3000\")"
+    ]
+  }
+}
